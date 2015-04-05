@@ -1,0 +1,33 @@
+- name: create required directories
+  file: dest=/srv/www/{{site.name}}/{{item.dest}} state=directory owner={{site.owner}} group={{site.group}} mode=0755
+  with_items:
+      - dest: "htdocs"
+      - dest: "logs"
+- name: create cgi-bin directory
+  file: dest=/srv/www/{{site.name}}/cgi-bin state=directory
+  when: site.cgi and httpd == "apache"
+- name: disallow deletion of required directories
+  shell: chflags sunlink /srv/www/{{site.name}}{,/htdocs,/logs,/cgi-bin} 
+  args: 
+      executable: /usr/local/bin/bash
+- include: perlcgi.yml
+  when: site.cgi and site.needs_perl
+- include: add_php_pool.yml
+  when: site.php
+- name: ensure sites.d dir is created
+  shell: |
+     if [ "{{httpd}}" = "apache" ] ; then mkdir -p /usr/local/etc/apache{{apache.version}}/sites.d ; else if [ "{{httpd}}" = "nginx" ] ; then mkdir -p /usr/local/etc/nginx/sites.d ; fi ; fi
+- name: create VirtualHost
+  template: src=../templates/httpd_site.apache.j2 dest=/usr/local/etc/apache{{apache.version}}/sites.d/{{site.name}}.conf
+  when: httpd == "apache" and site.file is not defined
+- template: src=../templates/httpd_site.apache.j2 dest=/usr/local/etc/apache{{apache.version}}/sites.d/{{site.file}}
+  when: httpd == "apache" and site.file is defined
+- name: create server {}
+  template: src=../templates/httpd_site.nginx.j2 dest=/usr/local/etc/nginx/sites.d/{{site.name}}.conf
+  when: httpd == "nginx"
+- name: restart apache
+  service: name=apache{{apache.version}} state=restarted enabled=yes
+  when: httpd == "apache"
+- name: restart nginx
+  service: name=nginx state=restarted enabled=yes
+  when: httpd == "nginx"

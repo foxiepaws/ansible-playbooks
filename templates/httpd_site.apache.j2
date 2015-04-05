@@ -1,0 +1,53 @@
+# {{ ansible_managed }}
+<VirtualHost {% if apache.ip is defined %}{{apache.ip}}{% else %}*{% endif %}:{% if apache.port is defined %}{{apache.port}}{% else %}80{% endif %}>
+    # server configuration
+    ServerName {{site.name}}
+    {% if site.aliases is defined %}
+    ServerAliases {{site.aliases}}
+    {% endif %}
+    {% if site.admin is defined %}
+        ServerAdmin {{site.admin}}
+    {% endif %}
+
+    # logging
+    ErrorLog /srv/www/{{site.name}}/logs/error.log
+    {% if site.loglevel is defined %}
+    LogLevel {{ site.loglevel }}
+    {% else %}
+    LogLevel warn
+    {% endif %}
+    CustomLog /srv/www/{{site.name}}/logs/access.log combined
+
+    DocumentRoot /srv/www/{{site.name}}/htdocs/
+    <Directory /srv/www/{{site.name}}/htdocs/>
+        {% if site.options is defined %}
+        Options {{site.options}}
+        {% else %}
+        Options Indexes FollowSymLinks Multiviews
+        {% endif %}
+        {% if site.override is defined %}
+        AllowOverride {{site.override}}
+        {%else %}
+        AllowOverride AuthConfig
+        {% endif %}
+        {% if site.auth is defined %}
+        {% else %}
+        require all granted
+        {% endif %}
+        {% if site.apache is defined %}
+        {{site.apache}}
+        {% endif %}
+    </Directory>
+
+    {% if site.cgi is defined and site.cgi %}
+    ScriptAlias /cgi-bin/ "/srv/www/{{site.name}}/cgi-bin/"
+    <Directory /srv/www/{{site.name}}/cgi-bin>
+        Options +ExecCGI -Multiviews +SymLinksIfOwnerMatch
+        AllowOverride None
+        require all granted
+    </Directory>
+    {% else %}
+    # CGI execution disabled
+    {% endif %}
+
+</VirtualHost>
