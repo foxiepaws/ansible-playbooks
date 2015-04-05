@@ -1,7 +1,9 @@
 - hosts: buildservers
 
   tasks:
-#      - include: tasks/portsnap.yml
+      # 
+      - include: tasks/buildpoudriere.yml
+        when: poudriere.master is defined and poudriere.master == True
       - name: Set up jails make.conf
         template: src=templates/make.conf dest="/usr/local/etc/poudriere.d/{{item.jail}}-make.conf"
         when: item.make_conf is defined
@@ -10,9 +12,11 @@
         template: src=templates/make.conf dest="/usr/local/etc/poudriere.d/{{item.set}}-make.conf"
         when: item.make_conf is defined
         with_items: poudriere.sets
-#      - name: Create Poudriere ports
-#        shell: poudriere ports -c
-#      - name: Create Jails
-#        shell: poudriere jails -c -j {{ item.jail }} -v {{ item.version }} -a {{ item.arch }}
-#        with_items: poudriere.jails
+      - name: Upload pkglists
+        copy: src=assets/pkglists dest=/usr/local/poudriere/pkglists
+      - name: Create Poudriere ports
+        shell: poudriere ports -c
+      - name: Create Jails
+        shell: poudriere jails -c -j {{ item.jail }} -v {{ item.version }} -a {{ item.arch }}
+        with_items: poudriere.jails
 
