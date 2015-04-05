@@ -1,0 +1,7 @@
+- name: update mysql{{mysql.version}}-server
+  pkgng: name=mysql{{mysql.version}}-server cached=no pkgsite={{repo.name}} state=present
+  register: result
+- name: restart mysql{{mysql.version}}-server
+  service: name=mysql-server enabled=yes state=restarted
+  when: result|changed
+

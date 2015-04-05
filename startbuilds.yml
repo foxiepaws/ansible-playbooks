@@ -1,0 +1,25 @@
+- hosts: buildservers
+
+  tasks:
+      - name: "Ensure poudriere daemon is started"
+        service: name=poudriered enabled=yes state=started
+      - name: "update poudriere jails"
+        shell: poudriere jail -u -j {{ item.jail }}
+        with_items: poudriere.jails
+        when: update_builders
+      - name: "update poudriere ports trees"
+        shell: poudriere ports -u -p {{ item.port }}
+        with_items: poudriere.ports
+        when: update_builders or update_ports 
+      - name: "Copy pkglists"
+        copy: src=assets/pkglists dest=/usr/local/poudriere/
+      - name: update poudriere builders make.conf (per jail)
+        template: src=templates/make.conf dest=/usr/local/etc/poudriere.d/{{item.jail}}-make.conf owner=root group=wheel mode=0755
+        with_items: poudriere.jails
+      - name: poudriere options (per jail)
+        copy: src=assets/options/{{item.jail}} dest=/usr/local/etc/poudriere.d/{{item.jail}}-options
+        with_items: poudriere.jails
+      - name: "run jobs"
+        shell: poudriere bulk -j {{ item.jail }} -p {{ item.ports }} -f /usr/local/poudriere/pkglists/{{ item.pkglist }}
+        with_items: poudriere.jobs
+

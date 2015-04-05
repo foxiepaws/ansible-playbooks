@@ -1,0 +1,18 @@
+- hosts: buildservers
+
+  tasks:
+#      - include: tasks/portsnap.yml
+      - name: Set up jails make.conf
+        template: src=templates/make.conf dest="/usr/local/etc/poudriere.d/{{item.jail}}-make.conf"
+        when: item.make_conf is defined
+        with_items: poudriere.jails
+      - name: Set up sets make.conf
+        template: src=templates/make.conf dest="/usr/local/etc/poudriere.d/{{item.set}}-make.conf"
+        when: item.make_conf is defined
+        with_items: poudriere.sets
+#      - name: Create Poudriere ports
+#        shell: poudriere ports -c
+#      - name: Create Jails
+#        shell: poudriere jails -c -j {{ item.jail }} -v {{ item.version }} -a {{ item.arch }}
+#        with_items: poudriere.jails
+

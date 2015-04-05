@@ -1,0 +1,12 @@
+- hosts: webservers
+
+  tasks:
+    - include: tasks/updateapache.yml
+      when: httpd == "apache"
+    - include: tasks/updatenginx.yml
+      when: httpd == "nginx"
+    - include: tasks/updatephp.yml
+      when: php.enabled == True
+    - include: tasks/updatemysql.yml
+      when: mysql.enabled == True
+

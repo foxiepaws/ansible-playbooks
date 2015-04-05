@@ -1,0 +1,9 @@
+- hosts: webservers
+  
+
+  tasks:
+    - include: tasks/setupnginx.yml
+      when: httpd == "nginx"
+    - include: tasks/setupapache.yml
+      when: httpd == "apache"
+    - 

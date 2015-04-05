@@ -1,0 +1,7 @@
+- name: update nginx
+  pkgng: name=nginx-devel cached=no pkgsite={{repo.name}} state=present
+  register: result
+- name: restart nginx
+  service: name=nginx enabled=yes state=restarted
+  when: result|changed
+

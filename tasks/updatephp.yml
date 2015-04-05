@@ -1,0 +1,6 @@
+- name: update PHP to {{php.version}}
+  pkgng: name={{php.version}} cached=no pkgsite={{repo.name}} state=present
+  register: result
+- name: restart PHP fastcgi
+  service: name=php-fpm enabled=yes state=restarted
+  when: result|changed

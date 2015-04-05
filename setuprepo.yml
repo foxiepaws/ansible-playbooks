@@ -1,0 +1,8 @@
+- hosts: servers
+  tasks:
+        - name: add config
+          template: src=templates/repo.conf dest=/etc/pkg/{{ repo.name }}.conf owner=root group=wheel mode=0644
+        - name: install key
+          copy: src="{{ repo.upkey }}" dest="/etc/ssl/{{ repo.name }}.cert"
+        - name: update pkg repo
+          shell: pkg update -r {{ repo.name }}

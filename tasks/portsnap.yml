@@ -1,0 +1,4 @@
+- name: portsnap fetch
+  shell: portsnap fetch
+- name: portsnap update
+  shell: portsnap update 
